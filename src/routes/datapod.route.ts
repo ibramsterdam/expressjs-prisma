@@ -8,6 +8,10 @@ import {
     readDatapodsController,
     readMyDatapodsController,
     updateDatapodController,
+    addMemberOnDatapodController,
+    readMembersOnDatapodController,
+    readDatapodsOnUserController,
+    deleteMemberOnDatapodController
 } from "../controllers/datapod.controller";
 
 export const datapodRouter = express.Router();
@@ -25,6 +29,11 @@ datapodRouter.delete("/delete-datapod/:id", validateToken, deleteDatapodControll
 
 datapodRouter.get("/read-my-datapods/:id", validateToken, readMyDatapodsController);
 
+datapodRouter.get("/read-shared-datapods/:id", validateToken, readDatapodsOnUserController);
 
-// add-user-to datapod
-// get-shared-datapods
+datapodRouter.post("/add-member/:datapodId", validateToken, addMemberOnDatapodController);
+
+datapodRouter.get("/read-members/:datapodId", validateToken, readMembersOnDatapodController);
+
+datapodRouter.delete("/delete-member/:datapodId", validateToken, deleteMemberOnDatapodController);
+

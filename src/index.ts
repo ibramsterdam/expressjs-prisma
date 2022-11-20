@@ -3,7 +3,6 @@ import express from "express";
 import { authenticationRouter } from "./routes/authentication.route";
 import { datapodRouter } from "./routes/datapod.route";
 import { permissionRouter } from "./routes/permission.route";
-import { datapodMemberRouter } from "./routes/datapodmember.route";
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -15,7 +14,6 @@ app.use(express.json());
 app.use("/auth", authenticationRouter);
 app.use("/datapod", datapodRouter);
 app.use("/permission", permissionRouter);
-app.use("/datapod-member", datapodMemberRouter);
 
 app.listen(process.env.PORT, () =>
   console.log(`

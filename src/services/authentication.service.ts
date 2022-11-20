@@ -54,6 +54,34 @@ export async function getUserService({
   }
 }
 
+export async function getUserByEmailService(email: string
+): Promise<{ user?: {}; error?: string }> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        hash: false,
+      },
+    });
+
+    if (!user) return { error: "Can't find user" };
+
+    return { user: user };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in getUserService" };
+  }
+}
+
+
 export async function registerService(
   email: string,
   password: string
