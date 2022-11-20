@@ -23,12 +23,12 @@ export async function loginService(
     const isMatch = await argon.verify(user.hash, password);
 
     if (!isMatch) return { error: "Wrong password" };
+    console.log("Successfull login!");
+
     return signToken(user.id, user.email);
   } catch (error) {
     return { error: "Error fetching" };
   }
-
-  console.log("Successfull login!");
 }
 
 export async function getUserService({
@@ -93,9 +93,9 @@ export async function registerService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
-  console.log("Register...\nemail: ", email, "\nPassword: ", password);
-
   try {
+    console.log("Register...\nemail: ", email, "\nPassword: ", password);
+
     const hash = await argon.hash(password);
     const user = await prisma.user.create({
       data: {
