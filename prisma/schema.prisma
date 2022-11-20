@@ -10,9 +10,43 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Todo {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  text      String
-  completed Boolean
+model User {
+  id              Int               @id @default(autoincrement())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  email           String            @unique
+  hash            String
+  firstName       String?
+  lastName        String?
+  Datapod         Datapod[]
+  UsersOnDatapods UsersOnDatapods[]
+}
+
+model Permission {
+  id              Int               @id @default(autoincrement())
+  name            String
+  description     String
+  UsersOnDatapods UsersOnDatapods[]
+}
+
+model Datapod {
+  id              Int               @id @default(autoincrement())
+  created_at      DateTime          @default(now())
+  updated_at      DateTime?
+  title           String
+  description     String
+  userId          Int
+  user            User              @relation(fields: [userId], references: [id])
+  UsersOnDatapods UsersOnDatapods[]
+}
+
+model UsersOnDatapods {
+  userId       Int
+  datapodId    Int
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  datapod      Datapod    @relation(fields: [datapodId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@id([userId, datapodId])
 }
