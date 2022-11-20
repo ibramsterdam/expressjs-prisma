@@ -9,22 +9,19 @@ export async function loginService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
-  try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      },
-    });
-    if (!user) return { error: "Can't find user" };
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
 
-    const isMatch = await argon.verify(user.hash, password);
+  if (!user) return { error: "Can't find user" };
 
-    if (!isMatch) return { error: "Wrong password" };
+  const isMatch = await argon.verify(user.hash, password);
 
-    return signToken(user.id, user.email);
-  } catch (error) {
-    return { error: "Err" };
-  }
+  if (!isMatch) return { error: "Wrong password" };
+
+  return signToken(user.id, user.email);
 }
 
 export async function getUserService({
@@ -62,18 +59,13 @@ export async function registerService(
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
   try {
-    console.log("in here");
-
     const hash = await argon.hash(password);
-    console.log("in hsssere");
-
     const user = await prisma.user.create({
       data: {
         email: email,
         hash,
       },
     });
-
     return signToken(user.id, user.email);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {

@@ -30,7 +30,7 @@ export async function loginController(
     const result = await loginService(email, password);
 
     if (result.error) {
-      res.status(400).send(result.error);
+      res.status(400).send("Bad Request");
     }
     if (result.access_token) res.status(200).send(result);
   } catch (err: any) {
@@ -77,8 +77,6 @@ export async function registerController(
   ) {
     return res.status(400).send("Bad Request!");
   }
-
-  console.log(password);
 
   try {
     const result = await registerService(email, password);
