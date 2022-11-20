@@ -9,6 +9,7 @@ export async function loginService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
+  console.log("Loggin in with email: ", email, "\n and password: ", password);
   const user = await prisma.user.findUnique({
     where: {
       email: email,
@@ -54,7 +55,8 @@ export async function getUserService({
   }
 }
 
-export async function getUserByEmailService(email: string
+export async function getUserByEmailService(
+  email: string
 ): Promise<{ user?: {}; error?: string }> {
   try {
     const user = await prisma.user.findUnique({
@@ -81,11 +83,12 @@ export async function getUserByEmailService(email: string
   }
 }
 
-
 export async function registerService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
+  console.log("Registering with email: ", email, "\n and password: ", password);
+
   try {
     const hash = await argon.hash(password);
     const user = await prisma.user.create({
