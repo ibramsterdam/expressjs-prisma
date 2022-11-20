@@ -27,17 +27,12 @@ export async function loginController(
     return res.status(400).send("Bad Request!");
   }
 
-  try {
-    const result = await loginService(email, password);
+  const result = await loginService(email, password);
 
-    if (result.error) {
-      res.status(400).send("Bad Request");
-    }
-    if (result.access_token) res.status(200).send(result);
-  } catch (err: any) {
-    console.error(`Err while getting`, err.message);
-    next(err);
+  if (result.error) {
+    res.status(400).send(result.error);
   }
+  if (result.access_token) res.status(200).send(result);
 }
 
 export async function getUserController(
@@ -45,17 +40,12 @@ export async function getUserController(
   res: express.Response,
   next: express.NextFunction
 ) {
-  try {
-    const result = await getUserService(res.locals.jwt);
+  const result = await getUserService(res.locals.jwt);
 
-    if (result.error) {
-      res.status(400).send(result.error);
-    }
-    if (result.user) res.status(200).send(result.user);
-  } catch (err: any) {
-    console.error(`Err while getting`, err.message);
-    next(err);
+  if (result.error) {
+    res.status(400).send(result.error);
   }
+  if (result.user) res.status(200).send(result.user);
 }
 
 export async function getUserByEmailController(
@@ -63,17 +53,12 @@ export async function getUserByEmailController(
   res: express.Response,
   next: express.NextFunction
 ) {
-  try {
-    const result = await getUserByEmailService(req.params.email);
+  const result = await getUserByEmailService(req.params.email);
 
-    if (result.error) {
-      res.status(400).send(result.error);
-    }
-    if (result.user) res.status(200).send(result.user);
-  } catch (err: any) {
-    console.error(`Err while getting`, err.message);
-    next(err);
+  if (result.error) {
+    res.status(400).send(result.error);
   }
+  if (result.user) res.status(200).send(result.user);
 }
 
 export async function registerController(
@@ -97,14 +82,9 @@ export async function registerController(
     return res.status(400).send("Bad Request!");
   }
 
-  try {
-    const result = await registerService(email, password);
-    if (result.error) {
-      res.status(400).send("Bad Request");
-    }
-    if (result.access_token) res.status(200).send(result);
-  } catch (err: any) {
-    console.error(`Err while getting`, err.message);
-    next(err);
+  const result = await registerService(email, password);
+  if (result.error) {
+    res.status(400).send(result.error);
   }
+  if (result.access_token) res.status(200).send(result);
 }

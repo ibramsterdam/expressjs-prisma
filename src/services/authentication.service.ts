@@ -9,20 +9,26 @@ export async function loginService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
-  console.log("Loggin in with email: ", email, "\n and password: ", password);
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
+  console.log("Loggin in...\nemail: ", email, "\nPassword: ", password);
 
-  if (!user) return { error: "Can't find user" };
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
 
-  const isMatch = await argon.verify(user.hash, password);
+    if (!user) return { error: "Can't find user" };
 
-  if (!isMatch) return { error: "Wrong password" };
+    const isMatch = await argon.verify(user.hash, password);
 
-  return signToken(user.id, user.email);
+    if (!isMatch) return { error: "Wrong password" };
+    return signToken(user.id, user.email);
+  } catch (error) {
+    return { error: "Error fetching" };
+  }
+
+  console.log("Successfull login!");
 }
 
 export async function getUserService({
@@ -87,7 +93,7 @@ export async function registerService(
   email: string,
   password: string
 ): Promise<{ access_token?: string; error?: string }> {
-  console.log("Registering with email: ", email, "\n and password: ", password);
+  console.log("Register...\nemail: ", email, "\nPassword: ", password);
 
   try {
     const hash = await argon.hash(password);
@@ -97,6 +103,7 @@ export async function registerService(
         hash,
       },
     });
+    console.log("Successfull Register!");
     return signToken(user.id, user.email);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {

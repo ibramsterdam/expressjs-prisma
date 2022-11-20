@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { authenticationRouter } from "./routes/authentication.route";
 import { datapodRouter } from "./routes/datapod.route";
