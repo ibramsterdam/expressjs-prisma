@@ -1,39 +1,48 @@
 import express from "express";
-import {validateToken} from "../middleware/authentication.middleware";
+import { validateToken } from "../middleware/authentication.middleware";
 
 import {
-    createDatapodController,
-    deleteDatapodController,
-    readDatapodController,
-    readDatapodsController,
-    readMyDatapodsController,
-    updateDatapodController,
-    addMemberOnDatapodController,
-    readMembersOnDatapodController,
-    readDatapodsOnUserController,
-    deleteMemberOnDatapodController
+  createDatapodController,
+  getOneDatapodController,
+  getMyDatapodsController,
+  getSharedDatapodsController,
+  getUsersFromDatapodController,
+  addUserToDatapodController,
+  updateRoleOfUserOnDatapodController,
 } from "../controllers/datapod.controller";
 
 export const datapodRouter = express.Router();
 
-
 datapodRouter.post("/create-datapod", validateToken, createDatapodController);
 
-datapodRouter.get("/read-datapod/:id", validateToken, readDatapodController);
+datapodRouter.get(
+  "/get-one-datapod/:id",
+  validateToken,
+  getOneDatapodController
+);
 
-datapodRouter.get("/read-datapods", validateToken, readDatapodsController);
+datapodRouter.get("/get-my-datapods", validateToken, getMyDatapodsController);
 
-datapodRouter.put("/update-datapod/:id", validateToken, updateDatapodController);
+datapodRouter.get(
+  "/get-shared-datapods",
+  validateToken,
+  getSharedDatapodsController
+);
 
-datapodRouter.delete("/delete-datapod/:id", validateToken, deleteDatapodController);
+datapodRouter.post(
+  "/add-user/:datapodId",
+  validateToken,
+  addUserToDatapodController
+);
 
-datapodRouter.get("/read-my-datapods/:id", validateToken, readMyDatapodsController);
+datapodRouter.get(
+  "/get-users/:datapodId",
+  validateToken,
+  getUsersFromDatapodController
+);
 
-datapodRouter.get("/read-shared-datapods/:id", validateToken, readDatapodsOnUserController);
-
-datapodRouter.post("/add-member/:datapodId", validateToken, addMemberOnDatapodController);
-
-datapodRouter.get("/read-members/:datapodId", validateToken, readMembersOnDatapodController);
-
-datapodRouter.delete("/delete-member/:datapodId", validateToken, deleteMemberOnDatapodController);
-
+datapodRouter.put(
+  "/update-user/:datapodId",
+  validateToken,
+  updateRoleOfUserOnDatapodController
+);

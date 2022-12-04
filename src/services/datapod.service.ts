@@ -1,228 +1,223 @@
-import {prisma} from "../index";
+import { prisma } from "../index";
 import * as dotenv from "dotenv";
-import { Prisma } from "@prisma/client";
+import { getUserByEmailService } from "./authentication.service";
+import { Payload } from "../middleware/authentication.middleware";
 
 dotenv.config();
 
+export async function createDatapodService(
+  { title, description }: { title: string; description: string },
+  jtwPayload: Payload
+): Promise<{
+  datapod?: any;
+  error?: string;
+}> {
+  try {
+    const user = await getUserByEmailService(jtwPayload.email);
 
-export async function createDatapodService(body: {
-    title: string,
-    description: string,
-    userId: number
-}): Promise<{ datapod?: {}; error?: string }> {
-    try {
+    // Get role
+    const role = await prisma.role.findUnique({
+      where: {
+        name: "Owner",
+      },
+    });
 
-        // create datapod
-        const datapod = await prisma.datapod.create({
-            data: {
-                title: body.title,
-                description: body.description,
-                userId: body.userId
-            }
+    if (role) {
+      // create datapod
+      const datapod = await prisma.datapod.create({
+        data: {
+          title: title,
+          description: description,
+        },
+      });
+
+      // Make connection
+      const test = await prisma.userOnDatapodwithRole.create({
+        data: {
+          datapodId: datapod.id,
+          userId: jtwPayload.sub,
+          role_name: role.name,
+        },
+      });
+
+      return { datapod: datapod };
+    }
+
+    return { error: "Cant find role" };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in createDatapod" };
+  }
+}
+
+export async function getOneDatapodService(
+  id: number,
+  jtwPayload: Payload
+): Promise<{ datapod?: {}; error?: string }> {
+  try {
+    const datapod = await prisma.userOnDatapodwithRole.findUnique({
+      where: {
+        userId_datapodId: { userId: jtwPayload.sub, datapodId: id },
+      },
+      include: {
+        datapod: true,
+      },
+    });
+
+    if (!datapod)
+      return { error: "Can't find a datapod that matches your stuff" };
+
+    return { datapod: datapod };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in getOneDatapodService" };
+  }
+}
+
+export async function getMyDatapodsService(
+  jtwPayload: Payload
+): Promise<{ datapods?: {}; error?: string }> {
+  try {
+    const datapods = await prisma.datapod.findMany({
+      where: {
+        users_on_datapod_with_role: {
+          some: { userId: jtwPayload.sub, role_name: { contains: "Owner" } },
+        },
+      },
+    });
+
+    if (!datapods) return { error: "Can't find a single datapod" };
+
+    return { datapods: datapods };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in getMyDatapodsService" };
+  }
+}
+
+export async function getSharedDatapodsService(
+  jtwPayload: Payload
+): Promise<{ datapods?: {}; error?: string }> {
+  try {
+    const datapods = await prisma.datapod.findMany({
+      where: {
+        users_on_datapod_with_role: {
+          some: { userId: jtwPayload.sub, NOT: { role_name: "Owner" } },
+        },
+      },
+    });
+
+    if (!datapods) return { error: "Can't find a single datapod" };
+
+    return { datapods: datapods };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in getSharedDatapodsService" };
+  }
+}
+
+export async function getUsersFromDatapodService(
+  datapodId: number,
+  jtwPayload: Payload
+): Promise<{ users?: {}; error?: string }> {
+  try {
+    const users = await prisma.userOnDatapodwithRole.findMany({
+      where: {
+        datapodId: datapodId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!users) return { error: "Can't find a users for some reason" };
+
+    return { users: users };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in getUsersFromDatapodService" };
+  }
+}
+
+// TODO Check if user is allowed to add >.<
+export async function addUserToDatapodService(
+  email: string,
+  datapodId: number,
+  jtwPayload: Payload
+): Promise<{ users?: {}; error?: string }> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      select: {
+        id: true,
+        createdAt: true,
+        updatedAt: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        hash: false,
+      },
+    });
+
+    if (user) {
+      const users = await prisma.userOnDatapodwithRole.create({
+        data: {
+          datapodId: datapodId,
+          userId: user.id,
+          role_name: "Reader",
+        },
+      });
+
+      if (!users) return { error: "Can't find a users for some reason" };
+
+      return { users: users };
+    }
+
+    return { error: "Cant find user by email" };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in addUserToDatapodService" };
+  }
+}
+
+export async function updateRoleOfUserOnDatapodService(
+  userId: number,
+  role_name: string,
+  datapodId: number,
+  jtwPayload: Payload
+): Promise<{ user?: {}; error?: string }> {
+  try {
+    const user = await prisma.userOnDatapodwithRole.findUnique({
+      where: {
+        userId_datapodId: { userId: jtwPayload.sub, datapodId },
+      },
+    });
+
+    if (user) {
+      if (user.role_name == "Manager" || user.role_name == "Owner") {
+        const updatedUser = await prisma.userOnDatapodwithRole.update({
+          where: {
+            userId_datapodId: { userId, datapodId },
+          },
+          data: {
+            role_name: role_name,
+          },
         });
 
+        if (!updatedUser)
+          return { error: "Can't find a users for some reason" };
 
-        return {datapod: datapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in createDatapod"};
+        return { user: updatedUser };
+      }
+      return { error: "You don't have permission" };
     }
+    return { error: "Can't find a user in this datapod" };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in updateRoleOfUserOnDatapodService" };
+  }
 }
 
-export async function readDatapodService(id: number): Promise<{ datapod?: {}; error?: string }> {
-    try {
-
-        const foundDatapod = await prisma.datapod.findUnique({
-            where: {
-                id: id,
-            }
-        })
-
-        if (!foundDatapod) return {datapod: {}, error: "Can't find datapod"};
-
-        return {datapod: foundDatapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in readDatapod"};
-    }
-}
-
-export async function readDatapodsService(): Promise<{ datapod?: {}; error?: string }> {
-    try {
-
-        const foundDatapod = await prisma.datapod.findMany();
-
-        if (!foundDatapod) return {datapod: {}, error: "Can't find datapod"};
-
-        return {datapod: foundDatapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in readDatapod"};
-    }
-}
-
-export async function updateDatapodService(id: number, body: {
-    title: string,
-    description: string,
-    userId: number
-}): Promise<{ datapod?: {}; error?: string }> {
-    try {
-
-        const updatedDatapod = await prisma.datapod.update({
-            where: {
-                id: id,
-            },
-            data: {
-                title: body.title,
-                description: body.description,
-                updated_at: new Date(),
-                userId: body.userId
-            },
-        })
-
-
-        return {datapod: updatedDatapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in updateDatapod"};
-    }
-}
-
-
-export async function deleteDatapodService(id: number): Promise<{ datapod?: {}; error?: string }> {
-    try {
-
-        const deletedDatapod = await prisma.datapod.delete({
-            where: {
-                id: id,
-            }
-        })
-
-        if (!deletedDatapod) return {datapod: {}, error: "Can't delete datapod because it doesn't exist"};
-
-        return {datapod: deletedDatapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in deleteDatapod"};
-    }
-}
-
-export async function readMyDatapodsService(id: number): Promise<{ datapods?: {}; error?: string }> {
-    try {
-
-        const foundDatapods = await prisma.datapod.findMany({
-            where: {
-                userId: id
-            }
-        });
-
-        if (!foundDatapods) return {datapods: {}, error: "Can't find datapod"};
-
-        return {datapods: foundDatapods};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in readMyDatapods"};
-    }
-}
-
-
-export async function addMemberOnDatapodService(datapodId: number, body: {
-    userId: number,
-    permissionId: number
-}): Promise<{ datapodMember?: {}; error?: string }> {
-    try {
-
-        // create datapod
-        const datapodMember = await prisma.usersOnDatapods.create({
-            data: {
-                datapodId: datapodId,
-                userId: body.userId,
-                permissionId: body.permissionId
-            }
-        });
-
-        return {datapodMember: datapodMember};
-    } catch (error) {
-        if(error instanceof Prisma.PrismaClientKnownRequestError){
-            if(error.code === 'P2003'){
-                console.log(error);
-                return {error: "Cannot find user or datapod."};
-            }else if(error.code === 'P2002'){
-                console.log(error);
-                return {error: "This user already has a permission on this datapod."};
-            }
-        }
-        console.log(error);
-        return {error: "Error in addMemberOnDatapod"};
-    }
-}
-
-export async function readMembersOnDatapodService(datapodId: number):
-    Promise<{ datapodMember?: {}; error?: string }> {
-    try {
-
-        const foundMembers = await prisma.usersOnDatapods.findMany({
-            where: {
-                datapodId: datapodId,
-            },
-            include: {
-                user: true,
-                datapod: true,
-                permission: true
-            }
-        })
-
-        if (!foundMembers[0]) return {error: "Can't find members on this datapod"};
-
-        return {datapodMember: foundMembers};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in readMembersOnDatapod"};
-    }
-}
-
-export async function readDatapodsOnMemberService(id: number):
-    Promise<{ datapodMember?: {}; error?: string }> {
-    try {
-
-        const foundDatapods = await prisma.usersOnDatapods.findMany({
-            where: {
-                userId: id,
-            },
-            include: {
-                user: true,
-                datapod: true,
-                permission: true
-            }
-        })
-
-        if (!foundDatapods[0]) return {error: "Can't find datapods shared with this user"};
-
-        return {datapodMember: foundDatapods};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in readDatapodsOnMember"};
-    }
-}
-
-export async function deleteMemberOnDatapodService(datapodId: number, userId: number):
-    Promise<{ datapodMember?: {}; error?: string }> {
-    try {
-
-        const deletedDatapod = await prisma.usersOnDatapods.delete({
-            where: {
-                userId_datapodId: {datapodId, userId}
-            }
-        })
-
-        if (!deletedDatapod) return {datapodMember: {}, error: "Can't delete datapod because it doesn't exist"};
-
-        return {datapodMember: deletedDatapod};
-    } catch (error) {
-        console.log(error);
-        return {error: "Error in deleteDatapod"};
-    }
-}
-
-
-
+// TODO Delete user from specific datapod

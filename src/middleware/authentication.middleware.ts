@@ -22,3 +22,10 @@ export const validateToken = (
     res.status(401).json({ msg: "Token is not valid" });
   }
 };
+
+export interface Payload {
+  sub: number;
+  email: string;
+  iat: number;
+  exp: number;
+}

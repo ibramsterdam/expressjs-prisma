@@ -8,42 +8,57 @@ datasource db {
 }
 
 model User {
-  id              Int               @id @default(autoincrement())
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  email           String            @unique
-  hash            String
-  firstName       String?
-  lastName        String?
-  Datapod         Datapod[]
-  UsersOnDatapods UsersOnDatapods[]
+  id                 Int                     @id @default(autoincrement())
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  email              String                  @unique
+  hash               String
+  firstName          String?
+  lastName           String?
+  displayName        String?
+  zip                String?
+  city               String?
+  state              String?
+  datapods_with_role UserOnDatapodwithRole[]
 }
 
-model Permission {
-  id              Int               @id @default(autoincrement())
-  name            String
-  description     String
-  UsersOnDatapods UsersOnDatapods[]
+model Role {
+  name                       String                  @id
+  description                String
+  users_on_datapod_with_role UserOnDatapodwithRole[]
 }
 
 model Datapod {
-  id              Int               @id @default(autoincrement())
-  created_at      DateTime          @default(now())
-  updated_at      DateTime?
-  title           String
-  description     String
-  userId          Int
-  user            User              @relation(fields: [userId], references: [id])
-  UsersOnDatapods UsersOnDatapods[]
+  id                         Int                     @id @default(autoincrement())
+  created_at                 DateTime                @default(now())
+  updated_at                 DateTime                @updatedAt
+  title                      String
+  description                String
+  users_on_datapod_with_role UserOnDatapodwithRole[]
+  items                      Item[]
 }
 
-model UsersOnDatapods {
-  userId       Int
-  datapodId    Int
-  permissionId Int
-  permission   Permission @relation(fields: [permissionId], references: [id])
-  datapod      Datapod    @relation(fields: [datapodId], references: [id])
-  user         User       @relation(fields: [userId], references: [id])
+model UserOnDatapodwithRole {
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  datapodId Int
+  datapod   Datapod @relation(fields: [datapodId], references: [id])
+
+  role_name String
+  role      Role   @relation(fields: [role_name], references: [name])
 
   @@id([userId, datapodId])
+}
+
+model Item {
+  id             Int      @id @default(autoincrement())
+  filename       String
+  mimetype       String
+  storageService String
+  fileId         String
+  fileUrl        String
+  datapodId      Int
+  createdAt      DateTime @default(now())
+  datapod        Datapod  @relation(fields: [datapodId], references: [id])
 }

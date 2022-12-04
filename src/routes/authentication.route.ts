@@ -1,14 +1,25 @@
 import express from "express";
-import {getUserByEmailController, getUserController, loginController, registerController,} from "../controllers/authentication.controller";
-import {validateToken} from "../middleware/authentication.middleware";
+import {
+  editUserController,
+  getUserByEmailController,
+  getUserController,
+  loginController,
+  registerController,
+} from "../controllers/authentication.controller";
+import { validateToken } from "../middleware/authentication.middleware";
 
 export const authenticationRouter = express.Router();
 
 authenticationRouter.get("/get-user", validateToken, getUserController);
 
-authenticationRouter.get("/get-user-by-email/:email", validateToken, getUserByEmailController);
+authenticationRouter.post("/edit-user", validateToken, editUserController);
+
+authenticationRouter.get(
+  "/get-user-by-email/:email",
+  validateToken,
+  getUserByEmailController
+);
 
 authenticationRouter.post("/login", loginController);
 
 authenticationRouter.post("/register", registerController);
-
