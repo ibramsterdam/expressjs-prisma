@@ -9,6 +9,7 @@ import {
   getUsersFromDatapodController,
   addUserToDatapodController,
   updateRoleOfUserOnDatapodController,
+  deleteUserOnDatapodController,
 } from "../controllers/datapod.controller";
 
 export const datapodRouter = express.Router();
@@ -45,4 +46,10 @@ datapodRouter.put(
   "/update-user/:datapodId",
   validateToken,
   updateRoleOfUserOnDatapodController
+);
+
+datapodRouter.delete(
+  "/delete-user/:datapodId",
+  validateToken,
+  deleteUserOnDatapodController
 );

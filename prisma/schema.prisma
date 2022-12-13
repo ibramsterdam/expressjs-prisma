@@ -21,10 +21,10 @@ model User {
   hash               String
   firstName          String?
   lastName           String?
-  displayName        String?
   zip                String?
   city               String?
   state              String?
+  profilePicture     String?
   datapods_with_role UserOnDatapodwithRole[]
 }
 

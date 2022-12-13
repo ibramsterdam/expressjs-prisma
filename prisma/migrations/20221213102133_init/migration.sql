@@ -7,10 +7,10 @@ CREATE TABLE "User" (
     "hash" TEXT NOT NULL,
     "firstName" TEXT,
     "lastName" TEXT,
-    "displayName" TEXT,
     "zip" TEXT,
     "city" TEXT,
     "state" TEXT,
+    "profilePicture" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );

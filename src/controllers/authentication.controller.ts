@@ -2,9 +2,6 @@ import express from "express";
 import {
   loginService,
   registerService,
-  getUserService,
-  getUserByEmailService,
-  editUserService,
 } from "../services/authentication.service";
 import { validateEmail } from "../helpers/validateEmail";
 import { isValidPassword } from "../helpers/validatePassword";
@@ -36,32 +33,6 @@ export async function loginController(
   if (result.access_token) res.status(200).send(result);
 }
 
-export async function getUserController(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  const result = await getUserService(res.locals.jwt);
-
-  if (result.error) {
-    res.status(400).send(result.error);
-  }
-  if (result.user) res.status(200).send(result.user);
-}
-
-export async function getUserByEmailController(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  const result = await getUserByEmailService(req.params.email);
-
-  if (result.error) {
-    res.status(400).send(result.error);
-  }
-  if (result.user) res.status(200).send(result.user);
-}
-
 export async function registerController(
   req: express.Request,
   res: express.Response,
@@ -88,20 +59,4 @@ export async function registerController(
     res.status(400).send(result.error);
   }
   if (result.access_token) res.status(200).send(result);
-}
-
-export async function editUserController(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  const result = await getUserService(res.locals.jwt);
-
-  try {
-    const updatedUser = await editUserService(req.body, res.locals.jwt);
-    res.status(200).send(updatedUser);
-  } catch (err: any) {
-    console.error(`Err while getting`, err.message);
-    next(err);
-  }
 }

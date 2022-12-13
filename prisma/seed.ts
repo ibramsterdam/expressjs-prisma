@@ -28,7 +28,6 @@ async function main() {
       hash: "ExamplePassword1",
     },
   });
-
   const saif = await prisma.user.upsert({
     where: { email: "saif@prisma.io" },
     update: {},

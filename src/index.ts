@@ -6,6 +6,7 @@ import { roleRouter } from "./routes/role.route";
 
 import * as dotenv from "dotenv";
 import { itemRouter } from "./routes/item.route";
+import {userRouter} from "./routes/user.route";
 dotenv.config();
 
 export const prisma = new PrismaClient();
@@ -13,6 +14,7 @@ const app = express();
 
 app.use(express.json());
 app.use("/auth", authenticationRouter);
+app.use("/user", userRouter);
 app.use("/datapod", datapodRouter);
 app.use("/role", roleRouter);
 app.use("/item", itemRouter);

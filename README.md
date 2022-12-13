@@ -39,6 +39,12 @@ $ npm install
 
 Ask a developer for these credentials
 
+4. Seed the db
+
+```shell
+$ npx prisma db seed
+```
+
 ## Run development server
 
 ```shell

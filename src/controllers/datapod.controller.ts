@@ -7,6 +7,7 @@ import {
   getUsersFromDatapodService,
   addUserToDatapodService,
   updateRoleOfUserOnDatapodService,
+  deleteUserOnDatapodService,
 } from "../services/datapod.service";
 
 export async function createDatapodController(
@@ -64,6 +65,7 @@ export async function getUsersFromDatapodController(
   if (result.error) return res.status(400).send(result.error);
   if (result.users) return res.status(200).send(result.users);
 }
+
 export async function addUserToDatapodController(
   req: express.Request,
   res: express.Response
@@ -77,6 +79,7 @@ export async function addUserToDatapodController(
   if (result.error) return res.status(400).send(result.error);
   if (result.users) return res.status(200).send(result.users);
 }
+
 export async function updateRoleOfUserOnDatapodController(
   req: express.Request,
   res: express.Response
@@ -84,6 +87,20 @@ export async function updateRoleOfUserOnDatapodController(
   const result = await updateRoleOfUserOnDatapodService(
     Number(req.body.userId),
     req.body.role_name,
+    Number(req.params.datapodId),
+    res.locals.jwt
+  );
+
+  if (result.error) return res.status(400).send(result.error);
+  if (result.user) return res.status(200).send(result.user);
+}
+
+export async function deleteUserOnDatapodController(
+  req: express.Request,
+  res: express.Response
+) {
+  const result = await deleteUserOnDatapodService(
+    Number(req.body.userId),
     Number(req.params.datapodId),
     res.locals.jwt
   );

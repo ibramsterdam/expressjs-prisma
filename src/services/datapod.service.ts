@@ -1,7 +1,7 @@
 import { prisma } from "../index";
 import * as dotenv from "dotenv";
-import { getUserByEmailService } from "./authentication.service";
 import { Payload } from "../middleware/authentication.middleware";
+import {getUserByEmailService} from "./user.service";
 
 dotenv.config();
 
@@ -207,7 +207,7 @@ export async function updateRoleOfUserOnDatapodService(
         });
 
         if (!updatedUser)
-          return { error: "Can't find a users for some reason" };
+          return { error: "Can't update a user for some reason" };
 
         return { user: updatedUser };
       }
@@ -220,4 +220,65 @@ export async function updateRoleOfUserOnDatapodService(
   }
 }
 
-// TODO Delete user from specific datapod
+export async function deleteUserOnDatapodService(
+  userId: number,
+  datapodId: number,
+  jtwPayload: Payload
+): Promise<{ user?: {}; error?: string }> {
+  try {
+    const user = await prisma.userOnDatapodwithRole.findUnique({
+      where: {
+        userId_datapodId: { userId: jtwPayload.sub, datapodId },
+      },
+    });
+    const targetUser = await prisma.userOnDatapodwithRole.findUnique({
+      where: {
+        userId_datapodId: { userId, datapodId },
+      },
+    });
+    const ownerCountInDatapod = await prisma.userOnDatapodwithRole.count({
+      where: {
+        datapodId: datapodId,
+        role_name: "Owner",
+      },
+    });
+
+
+    if (user && targetUser) {
+      if (targetUser.role_name == "Owner" && ownerCountInDatapod === 1)
+        return { error: "There should be one owner in the Datapod at least" };
+      if (targetUser.role_name == "Owner" && user.role_name === "Manager")
+        return { error: "Manager can't delete an Owner" };
+
+      if (user.role_name == "Owner") {
+        const deletedUser = await prisma.userOnDatapodwithRole.delete({
+          where: {
+            userId_datapodId: { userId, datapodId },
+          },
+        });
+        if (!deletedUser)
+          return { error: "Can't delete a user for some reason" };
+
+        return { user: deletedUser };
+      }
+
+      if (user.role_name == "Manager") {
+        const deletedUser = await prisma.userOnDatapodwithRole.delete({
+          where: {
+            userId_datapodId: { userId, datapodId },
+          },
+        });
+        if (!deletedUser)
+          return { error: "Can't delete a user for some reason" };
+        return { user: deletedUser };
+      }
+
+      //When the requesting user is neither Manager or Owner
+      return { error: "You don't have permission" };
+    }
+    return { error: "Can't find a user" };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in deleteUserOnDatapodService" };
+  }
+}
