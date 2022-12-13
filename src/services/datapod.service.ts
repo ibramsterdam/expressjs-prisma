@@ -1,9 +1,17 @@
 import { prisma } from "../index";
 import * as dotenv from "dotenv";
 import { Payload } from "../middleware/authentication.middleware";
-import {getUserByEmailService} from "./user.service";
+import { getUserByEmailService } from "./user.service";
+import { User } from "@prisma/client";
 
 dotenv.config();
+
+export interface GetUserResponse {
+  userId: number;
+  datapodId: number;
+  role_name: string;
+  user: User;
+}
 
 export async function createDatapodService(
   { title, description }: { title: string; description: string },
@@ -130,9 +138,23 @@ export async function getUsersFromDatapodService(
       },
     });
 
+    // Make sure the first user in the list is the user that is requesting the list
+    const _users: GetUserResponse[] = users.reduce(
+      (accumulator: GetUserResponse[], user: GetUserResponse) => {
+        if (user.userId === jtwPayload.sub) {
+          accumulator.unshift(user);
+        } else {
+          accumulator.push(user);
+        }
+
+        return accumulator;
+      },
+      []
+    );
+
     if (!users) return { error: "Can't find a users for some reason" };
 
-    return { users: users };
+    return { users: _users };
   } catch (error) {
     console.log(error);
     return { error: "Error in getUsersFromDatapodService" };
@@ -242,7 +264,6 @@ export async function deleteUserOnDatapodService(
         role_name: "Owner",
       },
     });
-
 
     if (user && targetUser) {
       if (targetUser.role_name == "Owner" && ownerCountInDatapod === 1)

@@ -17,7 +17,7 @@ async function main() {
     update: {},
     create: {
       email: "bram@prisma.io",
-      hash: "Wachtwoord1",
+      hash: "$argon2id$v=19$m=65536,t=3,p=4$p7suq6UdIDH1au8uOtd6fA$dhDbY447/KqOt9l6ju5V8w+EQ2RUKmHa0fDoOO87AQE",
     },
   });
   const bob = await prisma.user.upsert({
@@ -25,7 +25,7 @@ async function main() {
     update: {},
     create: {
       email: "bob@prisma.io",
-      hash: "ExamplePassword1",
+      hash: "$argon2id$v=19$m=65536,t=3,p=4$p7suq6UdIDH1au8uOtd6fA$dhDbY447/KqOt9l6ju5V8w+EQ2RUKmHa0fDoOO87AQE",
     },
   });
   const saif = await prisma.user.upsert({
@@ -33,7 +33,7 @@ async function main() {
     update: {},
     create: {
       email: "saif@prisma.io",
-      hash: "ExamplePassword1",
+      hash: "$argon2id$v=19$m=65536,t=3,p=4$p7suq6UdIDH1au8uOtd6fA$dhDbY447/KqOt9l6ju5V8w+EQ2RUKmHa0fDoOO87AQE",
     },
   });
   const tico = await prisma.user.upsert({
@@ -41,7 +41,7 @@ async function main() {
     update: {},
     create: {
       email: "tico@prisma.io",
-      hash: "ExamplePassword1",
+      hash: "$argon2id$v=19$m=65536,t=3,p=4$p7suq6UdIDH1au8uOtd6fA$dhDbY447/KqOt9l6ju5V8w+EQ2RUKmHa0fDoOO87AQE",
     },
   });
 
