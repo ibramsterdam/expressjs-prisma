@@ -10,6 +10,7 @@ export interface GetUserResponse {
   userId: number;
   datapodId: number;
   role_name: string;
+  roleExpireDate: null | Date;
   user: User;
 }
 
@@ -21,37 +22,24 @@ export async function createDatapodService(
   error?: string;
 }> {
   try {
-    const user = await getUserByEmailService(jtwPayload.email);
-
-    // Get role
-    const role = await prisma.role.findUnique({
-      where: {
-        name: "Owner",
+    // create datapod
+    const datapod = await prisma.datapod.create({
+      data: {
+        title: title,
+        description: description,
       },
     });
 
-    if (role) {
-      // create datapod
-      const datapod = await prisma.datapod.create({
-        data: {
-          title: title,
-          description: description,
-        },
-      });
+    // Make connection
+    await prisma.userOnDatapodwithRole.create({
+      data: {
+        datapodId: datapod.id,
+        userId: jtwPayload.sub,
+        role_name: "Owner",
+      },
+    });
 
-      // Make connection
-      const test = await prisma.userOnDatapodwithRole.create({
-        data: {
-          datapodId: datapod.id,
-          userId: jtwPayload.sub,
-          role_name: role.name,
-        },
-      });
-
-      return { datapod: datapod };
-    }
-
-    return { error: "Cant find role" };
+    return { datapod: datapod };
   } catch (error) {
     console.log(error);
     return { error: "Error in createDatapod" };
@@ -110,7 +98,11 @@ export async function getSharedDatapodsService(
     const datapods = await prisma.datapod.findMany({
       where: {
         users_on_datapod_with_role: {
-          some: { userId: jtwPayload.sub, NOT: { role_name: "Owner" } },
+          some: {
+            userId: jtwPayload.sub,
+            roleExpireDate: { gt: new Date() },
+            NOT: { role_name: "Owner" },
+          },
         },
       },
     });
@@ -131,7 +123,18 @@ export async function getUsersFromDatapodService(
   try {
     const users = await prisma.userOnDatapodwithRole.findMany({
       where: {
-        datapodId: datapodId,
+        OR: [
+          {
+            datapodId: datapodId,
+            roleExpireDate: {
+              gt: new Date(),
+            },
+          },
+          {
+            datapodId: datapodId,
+            roleExpireDate: null,
+          },
+        ],
       },
       include: {
         user: true,
@@ -161,43 +164,59 @@ export async function getUsersFromDatapodService(
   }
 }
 
-// TODO Check if user is allowed to add >.<
 export async function addUserToDatapodService(
   email: string,
   datapodId: number,
   jtwPayload: Payload
 ): Promise<{ users?: {}; error?: string }> {
   try {
-    const user = await prisma.user.findUnique({
+    const invitingUser = await prisma.userOnDatapodwithRole.findUnique({
       where: {
-        email: email,
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        hash: false,
+        userId_datapodId: { userId: jtwPayload.sub, datapodId },
       },
     });
 
-    if (user) {
-      const users = await prisma.userOnDatapodwithRole.create({
-        data: {
-          datapodId: datapodId,
-          userId: user.id,
-          role_name: "Reader",
+    if (
+      invitingUser?.role_name === "Owner" ||
+      invitingUser?.role_name === "Manager"
+    ) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          hash: false,
         },
       });
 
-      if (!users) return { error: "Can't find a users for some reason" };
+      if (user) {
+        const date = new Date();
+        date.setDate(date.getDate() + 7);
 
-      return { users: users };
+        const users = await prisma.userOnDatapodwithRole.create({
+          data: {
+            datapodId: datapodId,
+            userId: user.id,
+            role_name: "Reader",
+            roleExpireDate: date,
+          },
+        });
+
+        if (!users) return { error: "Can't find a users for some reason" };
+
+        return { users: users };
+      }
+
+      return { error: "Cant find user by email" };
     }
 
-    return { error: "Cant find user by email" };
+    return { error: "User is not allowed to update" };
   } catch (error) {
     console.log(error);
     return { error: "Error in addUserToDatapodService" };
@@ -219,19 +238,45 @@ export async function updateRoleOfUserOnDatapodService(
 
     if (user) {
       if (user.role_name == "Manager" || user.role_name == "Owner") {
-        const updatedUser = await prisma.userOnDatapodwithRole.update({
+        const userToBeUpdated = await prisma.userOnDatapodwithRole.findUnique({
           where: {
             userId_datapodId: { userId, datapodId },
           },
-          data: {
-            role_name: role_name,
-          },
         });
 
-        if (!updatedUser)
-          return { error: "Can't update a user for some reason" };
+        if (userToBeUpdated) {
+          if (
+            userToBeUpdated.role_name === "Owner" &&
+            user.role_name === "Manager"
+          ) {
+            return { error: "Can't update an Owner as a Manager" };
+          }
 
-        return { user: updatedUser };
+          if (user.role_name === "Manager" && role_name === "Owner") {
+            return {
+              error: "Can't update someone to Owner status as a Manager",
+            };
+          }
+
+          const date = new Date();
+          date.setDate(date.getDate() + 7);
+
+          const updatedUser = await prisma.userOnDatapodwithRole.update({
+            where: {
+              userId_datapodId: { userId, datapodId },
+            },
+            data: {
+              role_name: role_name,
+              roleExpireDate: role_name === "Owner" ? null : date,
+            },
+          });
+
+          if (!updatedUser)
+            return { error: "Can't update a user for some reason" };
+
+          return { user: updatedUser };
+        }
+        return { error: "Can't update a user for some reason" };
       }
       return { error: "You don't have permission" };
     }

@@ -75,38 +75,4 @@ async function main() {
         "This person can create, read, update, delete content of the datapod and add/remove users to the datapod and delete the datapod itself",
     },
   });
-
-  // // create datapods
-  // if (bram) {
-  //   const datapod = await prisma.datapod.create({
-  //     data: {
-  //       title: "Spotify",
-  //       description: "My private songs",
-  //     },
-  //   });
-  // }
-  // if (saif) {
-  //   const datapod = await prisma.datapod.create({
-  //     data: {
-  //       title: "Youtube",
-  //       description: "My most watched videos",
-  //     },
-  //   });
-  // }
-  // if (bob) {
-  //   const datapod = await prisma.datapod.create({
-  //     data: {
-  //       title: "Passwords",
-  //       description: "My password vault",
-  //     },
-  //   });
-  // }
-  // if (tico) {
-  //   const datapod = await prisma.datapod.create({
-  //     data: {
-  //       title: "Gymtrackings",
-  //       description: "I like to keep notes of my progress",
-  //     },
-  //   });
-  // }
 }

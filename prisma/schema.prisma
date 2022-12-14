@@ -54,6 +54,8 @@ model UserOnDatapodwithRole {
   role_name String
   role      Role   @relation(fields: [role_name], references: [name])
 
+  roleExpireDate DateTime?
+
   @@id([userId, datapodId])
 }
 
