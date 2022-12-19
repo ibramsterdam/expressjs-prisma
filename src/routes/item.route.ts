@@ -1,9 +1,9 @@
 import express from "express";
-import { validateToken } from "../middleware/authentication.middleware";
+import {validateToken} from "../middleware/authentication.middleware";
 import {
-  deleteItemController,
-  getItemsController,
-  uploadItemController,
+    deleteItemController,
+    getItemsController,
+    uploadItemController,
 } from "../controllers/item.controller";
 
 const upload = require("../utils/multer");
