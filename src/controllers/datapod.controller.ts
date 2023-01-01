@@ -8,6 +8,9 @@ import {
   addUserToDatapodService,
   updateRoleOfUserOnDatapodService,
   deleteUserOnDatapodService,
+  uploadBackgroundPhotoService,
+    searchSharedDatapodsService,
+    searchMyDatapodsService
 } from "../services/datapod.service";
 
 export async function createDatapodController(
@@ -53,6 +56,31 @@ export async function getSharedDatapodsController(
   if (result.datapods) return res.status(200).send(result.datapods);
 }
 
+
+export async function searchMyDatapodsController(
+    req: express.Request,
+    res: express.Response
+) {
+
+  const result = await searchMyDatapodsService(res.locals.jwt, String(req.query.query));
+
+  if (result.error) return res.status(400).send(result.error);
+  if (result.datapods) return res.status(200).send(result.datapods);
+}
+
+export async function searchSharedDatapodsController(
+    req: express.Request,
+    res: express.Response
+) {
+
+  const result = await searchSharedDatapodsService(res.locals.jwt, String(req.query.query));
+
+  if (result.error) return res.status(400).send(result.error);
+  if (result.datapods) return res.status(200).send(result.datapods);
+}
+
+
+
 export async function getUsersFromDatapodController(
   req: express.Request,
   res: express.Response
@@ -87,8 +115,9 @@ export async function updateRoleOfUserOnDatapodController(
   const result = await updateRoleOfUserOnDatapodService(
     Number(req.body.userId),
     req.body.role_name,
+      req.body.expiration_date,
     Number(req.params.datapodId),
-    res.locals.jwt
+    res.locals.jwt,
   );
 
   if (result.error) return res.status(400).send(result.error);
@@ -107,4 +136,19 @@ export async function deleteUserOnDatapodController(
 
   if (result.error) return res.status(400).send(result.error);
   if (result.user) return res.status(200).send(result.user);
+}
+
+export async function uploadBackgroundPhotoController(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const result = await uploadBackgroundPhotoService(
+    req, 
+    Number(req.params.datapodId),
+    res, 
+    res.locals.jwt);
+
+  if (result.error) return res.status(400).send(result.error);
+  if (result.backgroundPhoto) return res.status(200).send(result.backgroundPhoto);
 }
