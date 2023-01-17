@@ -425,6 +425,42 @@ export async function deleteUserOnDatapodService(
     return { error: "Error in deleteUserOnDatapodService" };
   }
 }
+export async function deleteDatapodService(
+  datapodId: number,
+  jtwPayload: Payload
+): Promise<{ datapod?: {}; error?: string }> {
+  try {
+    const user = await prisma.userOnDatapodwithRole.findUnique({
+      where: {
+        userId_datapodId: { userId: jtwPayload.sub, datapodId },
+      },
+    });
+
+    console.log("USER", user);
+    if (!user) {
+      return { error: "Can't find a user" };
+    }
+
+    if (user.role_name !== "Owner") {
+      return { error: "Can't delete a pod if you are not the Owner" };
+    }
+
+    const deletedDatapod = await prisma.datapod.delete({
+      where: {
+        id: datapodId,
+      },
+    });
+
+    if (!deletedDatapod) {
+      return { error: "Something went wrong" };
+    }
+
+    return { datapod: deletedDatapod };
+  } catch (error) {
+    console.log(error);
+    return { error: "Error in deleteUserOnDatapodService" };
+  }
+}
 
 export async function uploadBackgroundPhotoService(
   req: any,

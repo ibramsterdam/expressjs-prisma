@@ -40,21 +40,23 @@ export async function registerService(
     console.log("Register...\nemail: ", email, "\nPassword: ", password);
 
     const hash = await argon.hash(password);
+
     const user = await prisma.user.create({
       data: {
         email: email,
-        hash,
+        hash: hash,
       },
     });
+
     console.log("Successfull Register!");
     return signToken(user.id, user.email);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
-        return {error: "Credentials taken"};
+        return { error: "Credentials taken" };
       }
     }
-    return {error: "Error in registerService"};
+    return { error: "Error in registerService" };
   }
 }
 

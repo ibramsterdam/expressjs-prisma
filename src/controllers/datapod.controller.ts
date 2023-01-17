@@ -11,6 +11,7 @@ import {
   uploadBackgroundPhotoService,
   searchSharedDatapodsService,
   searchMyDatapodsService,
+  deleteDatapodService,
 } from "../services/datapod.service";
 
 export async function createDatapodController(
@@ -139,6 +140,19 @@ export async function deleteUserOnDatapodController(
 
   if (result.error) return res.status(400).send(result.error);
   if (result.user) return res.status(200).send(result.user);
+}
+
+export async function deleteDatapodController(
+  req: express.Request,
+  res: express.Response
+) {
+  const result = await deleteDatapodService(
+    Number(req.body.datapodId),
+    res.locals.jwt
+  );
+
+  if (result.error) return res.status(400).send(result.error);
+  if (result.datapod) return res.status(200).send(result.datapod);
 }
 
 export async function uploadBackgroundPhotoController(

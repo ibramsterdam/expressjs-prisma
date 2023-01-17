@@ -49,7 +49,7 @@ model UserOnDatapodwithRole {
   user   User @relation(fields: [userId], references: [id])
 
   datapodId Int
-  datapod   Datapod @relation(fields: [datapodId], references: [id])
+  datapod   Datapod @relation(fields: [datapodId], references: [id], onDelete: Cascade)
 
   role_name String
   role      Role   @relation(fields: [role_name], references: [name])
