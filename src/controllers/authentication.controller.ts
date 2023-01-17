@@ -12,7 +12,7 @@ export async function loginController(
   next: express.NextFunction
 ) {
   const _email: string = req.body.email;
-  const email = _email.toLowerCase(); // make email always lowercase
+  const email = _email.toLowerCase().trim(); // make email always lowercase
 
   const password: string = req.body.password;
 
