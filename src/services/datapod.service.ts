@@ -338,6 +338,7 @@ export async function updateRoleOfUserOnDatapodService(
     );
 
     let newExpirationDate = new Date();
+    newExpirationDate.setDate(newExpirationDate.getDate() + 7);
     if (expiration_date) {
       newExpirationDate = new Date(expiration_date);
     }
