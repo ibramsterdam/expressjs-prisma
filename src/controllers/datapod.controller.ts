@@ -99,8 +99,10 @@ export async function addUserToDatapodController(
   req: express.Request,
   res: express.Response
 ) {
+  const _email: string = req.body.email;
+  const email = _email.toLowerCase().trim();
   const result = await addUserToDatapodService(
-    req.body.email,
+    email,
     Number(req.params.datapodId),
     res.locals.jwt
   );

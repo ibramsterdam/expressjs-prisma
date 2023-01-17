@@ -39,7 +39,7 @@ export async function registerController(
   next: express.NextFunction
 ) {
   const _email: string = req.body.email;
-  const email = _email.toLowerCase(); // make email always lowercase
+  const email = _email.toLowerCase().trim(); // make email always lowercase
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
 
